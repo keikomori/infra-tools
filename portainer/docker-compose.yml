@@ -1,0 +1,32 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - keiko_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.infra.local`)"
+      - "traefik.http.routers.portainer.entrypoints=websecure"
+      - "traefik.http.routers.portainer.tls=true"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.docker.network=keiko_network"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  portainer_data:
+
+networks:
+  keiko_network:
+    external: true

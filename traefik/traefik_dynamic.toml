@@ -1,0 +1,24 @@
+[tls]
+  [[tls.certificates]]
+    certFile = "/certs/traefik.infra.local.pem"
+    keyFile = "/certs/traefik.infra.local-key.pem"
+  [[tls.certificates]]
+    certFile = "/certs/portainer.infra.local.pem"
+    keyFile = "/certs/portainer.infra.local-key.pem"
+  [[tls.certificates]]
+    certFile = "/certs/grafana.infra.local.pem"
+    keyFile = "/certs/grafana.infra.local-key.pem"
+
+
+[http.middlewares]
+  [http.middlewares.redirect-www-to-main.redirectregex]
+    permanent = true
+    regex = "^https?://www\\.(.+)"
+    replacement = "https://${1}"
+
+[http.routers.api]
+  rule = "Host(`traefik.infra.local`)"
+  entrypoints = ["websecure"]
+  service = "api@internal"
+  [http.routers.api.tls]
+    domains = ["traefik.infra.local"]

@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:17
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=dev-db
+    ports:
+      - target: 5432
+        published: 5432
+        mode: host
+    networks:
+      - keiko_network
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+
+networks:
+  keiko_network:
+    external: true
