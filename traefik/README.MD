@@ -1,89 +1,89 @@
-🔐 HTTPS Local com Traefik e mkcert
-1. Instale o mkcert
-Se ainda não tem o mkcert:
+# Traefik com HTTPS Local usando mkcert
+
+Este guia explica como configurar o Traefik em um ambiente local com suporte a HTTPS via certificados gerados pelo `mkcert`, usando Docker Swarm e rede compartilhada.
+
+## Estrutura de diretórios
 
 ```bash
-sudo apt install libnss3-tools
-brew install mkcert
-mkcert -install
+infra-tools/
+├── certs/
+│   ├── traefik.infra.local.pem
+│   ├── traefik.infra.local-key.pem
+│   ├── portainer.infra.local.pem
+│   ├── portainer.infra.local-key.pem
+│   └── grafana.portainer.infra.local.pem
+│   └── grafana.portainer.infra.local-key.pem
+├── traefik/
+│   ├── docker-compose.yml
+│   ├── traefik.toml
+│   ├── traefik_dynamic.toml
+│   └── acme.json
 ```
-O mkcert -install adiciona um certificado raiz confiável ao sistema.
 
-2. Gere o certificado local
-Dentro da pasta traefik/ do seu projeto:
+## 1. Gerar certificados com mkcert
 
 ```bash
-cd traefik
-mkcert traefik.localhost
-mkdir -p certs
-mv traefik.localhost.pem certs/
-mv traefik.localhost-key.pem certs/
+mkcert traefik.infra.local
+mkcert portainer.infra.local
+mkcert grafana.portainer.infra.local
+
+mv *.pem ../certs/
 ```
 
-3. Atualize o traefik.toml
+## 2. Atualizar o traefik\_dynamic.toml
 
-```toml
-[entryPoints]
-  [entryPoints.web]
-    address = ":80"
-    [entryPoints.web.http]
-      [entryPoints.web.http.redirections]
-        [entryPoints.web.http.redirections.entryPoint]
-          to = "websecure"
-          scheme = "https"
-
-  [entryPoints.websecure]
-    address = ":443"
-
-[log]
-  level = "WARN"
-
-[accessLog]
-
-[metrics.prometheus]
-
-[api]
-  dashboard = true
-
-[providers.docker]
-  watch = true
-  network = "keiko_network"
-
-[providers.file]
-  filename = "/traefik_dynamic.toml"
-```
-
-4. Atualize o traefik_dynamic.toml
+Adicione:
 
 ```toml
 [tls]
   [[tls.certificates]]
-    certFile = "/certs/traefik.localhost.pem"
-    keyFile = "/certs/traefik.localhost-key.pem"
+    certFile = "/certs/traefik.infra.local.pem"
+    keyFile = "/certs/traefik.infra.local-key.pem"
+
+  [[tls.certificates]]
+    certFile = "/certs/portainer.infra.local.pem"
+    keyFile = "/certs/portainer.infra.local-key.pem"
+
+  [[tls.certificates]]
+    certFile = "/certs/grafana.portainer.infra.local.pem"
+    keyFile = "/certs/grafana.portainer.infra.local-key.pem"
 
 [http.routers.api]
-  rule = "Host(`traefik.localhost`)"
+  rule = "Host(`traefik.infra.local`)"
   entrypoints = ["websecure"]
   service = "api@internal"
   [http.routers.api.tls]
-    domains = ["traefik.localhost"]
+    domains = ["traefik.infra.local"]
 ```
 
-5. Atualize o /etc/hosts
-Adicione:
+## 3. Atualizar volumes no docker-compose.yml
+
+```yaml
+    volumes:
+      - ./traefik.toml:/traefik.toml
+      - ./traefik_dynamic.toml:/traefik_dynamic.toml
+      - ./acme.json:/acme.json
+      - ../certs/traefik.infra.local.pem:/certs/traefik.infra.local.pem
+      - ../certs/traefik.infra.local-key.pem:/certs/traefik.infra.local-key.pem
+      - ../certs/portainer.infra.local.pem:/certs/portainer.infra.local.pem
+      - ../certs/portainer.infra.local-key.pem:/certs/portainer.infra.local-key.pem
+      - ../certs/grafana.portainer.infra.local.pem:/certs/grafana.portainer.infra.local.pem
+      - ../certs/grafana.portainer.infra.local-key.pem:/certs/grafana.portainer.infra.local-key.pem
+```
+
+## 4. Atualizar /etc/hosts
 
 ```bash
-127.0.0.1 traefik.localhost
+echo "127.0.0.1 traefik.infra.local portainer.infra.local grafana.portainer.infra.local" | sudo tee -a /etc/hosts
 ```
 
-6. Redeploy com Docker Swarm
+## 5. Deploy com Docker Swarm
 
 ```bash
-docker stack rm traefik
-docker stack deploy -c traefik/docker-compose.yml traefik
+cd traefik
+docker stack deploy -c docker-compose.yml traefik
 ```
 
-✅ Pronto!
-Acesse: https://traefik.localhost
-Você verá o painel Traefik com um certificado válido e confiável no navegador.
+## 6. Acessar o Traefik
 
+Abra [https://traefik.infra.local](https://traefik.infra.local) no navegador. O certificado deve estar confiável se o `mkcert` estiver corretamente instalado.
