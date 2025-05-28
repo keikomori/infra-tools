@@ -27,6 +27,8 @@ services:
       - ../certs/portainer.infra.local-key.pem:/certs/portainer.infra.local-key.pem
       - ../certs/grafana.infra.local.pem:/certs/grafana.infra.local.pem
       - ../certs/grafana.infra.local-key.pem:/certs/grafana.infra.local-key.pem
+      - ../certs/odoo.infra.local.pem:/certs/odoo.infra.local.pem
+      - ../certs/odoo.infra.local-key.pem:/certs/odoo.infra.local-key.pem
 
     logging:
       options:

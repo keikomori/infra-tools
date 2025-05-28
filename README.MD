@@ -12,6 +12,15 @@ infra-tools/
 ├── portainer/                       # Interface de gerenciamento de containers
 ├── monitoring/                      # Grafana e Prometheus
 ├── odoo/                            # Plataforma Odoo com suporte a debug remoto
+│   ├── docker/                      # Dockerfiles por versão
+│   │   └── 18.0/Dockerfile          # Dockerfile com debugpy
+│   ├── versions/                    # Código oficial clonado por versão
+│   ├── addons/                      # Módulos personalizados
+│   └── instances/
+│       └── dev/                     # Instância de desenvolvimento
+│           ├── config/odoo.conf
+│           ├── logs/
+│           └── docker-compose.yml
 ```
 
 ## Funcionalidades
@@ -40,9 +49,11 @@ infra-tools/
 
 ### 🧠 Odoo com Debug Remoto
 
-* Configurado com `debugpy` para uso com PyCharm
+* Estrutura baseada em instâncias por pasta
+* Build customizado com `debugpy` e `pandas`
+* Configuração via `odoo.conf` e Traefik para domínio `dev.infra.local`
+* Porta `5678` publicada para conexão com PyCharm
 * Breakpoints funcionam no core e em módulos personalizados
-* Executado via Docker Swarm na rede `keiko_network`
 
 ## Rede Compartilhada
 
@@ -58,6 +69,7 @@ Todos os serviços usam a rede externa `keiko_network`, o que permite comunicaç
 mkcert traefik.infra.local
 mkcert portainer.infra.local
 mkcert grafana.portainer.infra.local
+mkcert dev.infra.local
 ```
 
 Os certificados `.pem` são montados diretamente no Traefik para HTTPS local confiável.
@@ -67,7 +79,7 @@ Os certificados `.pem` são montados diretamente no Traefik para HTTPS local con
 Adicione ao `/etc/hosts`:
 
 ```bash
-127.0.0.1 traefik.infra.local portainer.infra.local grafana.portainer.infra.local
+127.0.0.1 traefik.infra.local portainer.infra.local grafana.portainer.infra.local dev.infra.local
 ```
 
 ## Deploy das Stacks
@@ -77,7 +89,7 @@ cd traefik && docker stack deploy -c docker-compose.yml traefik
 cd postgres && docker stack deploy -c docker-compose.yml postgres
 cd portainer && docker stack deploy -c docker-compose.yml portainer
 cd monitoring && docker stack deploy -c docker-compose.yml monitoring
-cd odoo && docker stack deploy -c docker-compose.yml odoo
+cd odoo/instances/dev && docker stack deploy -c docker-compose.yml odoo_dev
 ```
 
 ---

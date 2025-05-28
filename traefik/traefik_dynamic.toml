@@ -8,7 +8,9 @@
   [[tls.certificates]]
     certFile = "/certs/grafana.infra.local.pem"
     keyFile = "/certs/grafana.infra.local-key.pem"
-
+  [[tls.certificates]]
+    certFile = "/certs/odoo.infra.local.pem"
+    keyFile = "/certs/odoo.infra.local-key.pem"
 
 [http.middlewares]
   [http.middlewares.redirect-www-to-main.redirectregex]
