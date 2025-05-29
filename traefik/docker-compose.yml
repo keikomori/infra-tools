@@ -27,10 +27,17 @@ services:
       - ../certs/portainer.infra.local-key.pem:/certs/portainer.infra.local-key.pem
       - ../certs/grafana.infra.local.pem:/certs/grafana.infra.local.pem
       - ../certs/grafana.infra.local-key.pem:/certs/grafana.infra.local-key.pem
-      - ../certs/rabbitmq.infra.local.pem:/certs/odoo.infra.local.pem
-      - ../certs/rabbitmq.infra.local-key.pem:/certs/odoo.infra.local-key.pem
-      - ../certs/nifi.infra.local.pem:/certs/odoo.infra.local.pem
-      - ../certs/nifi.infra.local-key.pem:/certs/odoo.infra.local-key.pem
+      - ../certs/rabbitmq.infra.local.pem:/certs/rabbitmq.infra.local.pem
+      - ../certs/rabbitmq.infra.local-key.pem:/certs/rabbitmq.infra.local-key.pem
+      - ../certs/nifi.infra.local.pem:/certs/nifi.infra.local.pem
+      - ../certs/nifi.infra.local-key.pem:/certs/nifi.infra.local-key.pem
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.infra.local`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.docker.network=keiko_network"
 
     logging:
       options:
