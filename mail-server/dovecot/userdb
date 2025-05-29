@@ -1,0 +1,3 @@
+thunderbird@dev.local::::::maildir:/var/mail/thunderbird@dev.local
+betterbird@dev.local::::::maildir:/var/mail/betterbird@dev.local
+odoo@dev.local::::::maildir:/var/mail/odoo@dev.local

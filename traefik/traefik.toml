@@ -10,6 +10,14 @@
   [entryPoints.websecure]
     address = ":443"
 
+  # TCP para SMTP STARTTLS (Postfix)
+  [entryPoints.smtp]
+    address = ":587"
+
+  # TCP para IMAPS (Dovecot)
+  [entryPoints.imaps]
+    address = ":993"
+
 [log]
   level = "WARN"
 
@@ -26,6 +34,7 @@
 
 [providers.docker]
   watch = true
+  exposedByDefault = false
   network = "keiko_network"
 
 [providers.file]

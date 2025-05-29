@@ -1,65 +1,41 @@
-# Portainer com HTTPS Local usando Traefik e mkcert
+## 🛠️ Portainer - Gerenciador de Containers para Docker Swarm
 
-Este guia documenta a configuração do Portainer em um ambiente local utilizando Docker Swarm e acesso seguro via Traefik com certificados HTTPS gerados por `mkcert`.
+O Portainer fornece uma interface gráfica leve para o gerenciamento de containers, volumes, stacks e redes no Docker Swarm.
 
-## Estrutura do Projeto
+---
 
-```bash
-infra-tools/
-├── certs/
-│   ├── portainer.infra.local.pem
-│   └── portainer.infra.local-key.pem
-├── portainer/
-│   └── docker-compose.yml
-```
+### 🎯 Objetivo
 
-## 1. Gerar certificados com mkcert
+Facilitar o gerenciamento da infraestrutura Docker de forma visual, sem depender exclusivamente da linha de comando.
 
-No diretório `infra-tools/traefik/certs/`:
+---
 
-```bash
-cd infra-tools/traefik
-mkcert portainer.infra.local
-mv portainer.infra.local.pem certs/
-mv portainer.infra.local-key.pem certs/
-```
+### 🧩 Principais Funcionalidades
 
-## 2. Adicionar certificados ao Traefik
+* Gerenciamento de stacks e serviços no Swarm.
+* Visualização de logs, volumes, redes e containers.
+* Suporte a múltiplos ambientes (Swarm remoto, agentes, etc).
+* Acesso com SSL local em `https://portainer.infra.local`.
 
-Atualize o `traefik_dynamic.toml` com:
+---
 
-```toml
-[[tls.certificates]]
-  certFile = "/certs/portainer.infra.local.pem"
-  keyFile = "/certs/portainer.infra.local-key.pem"
-```
-
-E monte os volumes no `traefik/docker-compose.yml`:
+### 📦 Configuração
 
 ```yaml
-- ../certs/portainer.infra.local.pem:/certs/portainer.infra.local.pem
-- ../certs/portainer.infra.local-key.pem:/certs/portainer.infra.local-key.pem
-```
-
-## 3. Configurar o Portainer
-
-```yaml
-version: '3.8'
-
 services:
   portainer:
-    image: portainer/portainer-ce:2.30.1
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
-      restart_policy:
-        condition: any
+    image: portainer/portainer-ce:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
     networks:
       - keiko_network
+    deploy:
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.role == manager
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.portainer.rule=Host(`portainer.infra.local`)"
@@ -67,27 +43,55 @@ services:
       - "traefik.http.routers.portainer.tls=true"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
       - "traefik.docker.network=keiko_network"
-
-volumes:
-  portainer_data:
-
-networks:
-  keiko_network:
-    external: true
 ```
 
-## 4. Atualizar /etc/hosts
+---
+
+### 🗂️ Estrutura de Arquivos
+
+```
+portainer/
+├── docker-compose.yml     # Stack com serviço e labels Traefik
+└── README.md              # Este documento
+```
+
+---
+
+### 📁 Volumes
+
+* `portainer_data`: volume persistente contendo credenciais, configurações, ambientes e tokens da interface.
+
+---
+
+### 🔐 Certificados
+
+Certificados `.pem` gerados com `mkcert`:
 
 ```bash
-echo "127.0.0.1 portainer.infra.local" | sudo tee -a /etc/hosts
+mkcert portainer.infra.local
 ```
 
-## 5. Deploy
+Devem estar disponíveis na pasta `certs/` e montados no Traefik.
+
+---
+
+### 🌐 Acesso
+
+| URL                                                            | Descrição                      |
+| -------------------------------------------------------------- | ------------------------------ |
+| [https://portainer.infra.local](https://portainer.infra.local) | Interface de gerenciamento web |
+
+---
+
+### 📦 Deploy
 
 ```bash
-docker stack deploy -c portainer/docker-compose.yml portainer
+docker stack deploy -c docker-compose.yml portainer
 ```
 
-## 6. Acessar
+---
 
-Abra [https://portainer.infra.local](https://portainer.infra.local) no navegador para acessar o Portainer com HTTPS válido localmente.
+### ✅ Requisitos
+
+* O Traefik deve estar em funcionamento na rede `keiko_network`.
+* É necessário ter um node com role `manager` no Swarm.

@@ -1,89 +1,85 @@
-# Traefik com HTTPS Local usando mkcert
+## 🔀 Traefik - Proxy Reverso com HTTPS Local
 
-Este guia explica como configurar o Traefik em um ambiente local com suporte a HTTPS via certificados gerados pelo `mkcert`, usando Docker Swarm e rede compartilhada.
+Este serviço fornece o proxy reverso central da infraestrutura. Ele é responsável por:
 
-## Estrutura de diretórios
+* Encaminhar tráfego HTTPS para os serviços internos com base no domínio.
+* Gerenciar certificados locais gerados com [mkcert](https://github.com/FiloSottile/mkcert).
+* Servir a UI de administração do Traefik via dashboard.
 
-```bash
-infra-tools/
-├── certs/
-│   ├── traefik.infra.local.pem
-│   ├── traefik.infra.local-key.pem
-│   ├── portainer.infra.local.pem
-│   ├── portainer.infra.local-key.pem
-│   └── grafana.portainer.infra.local.pem
-│   └── grafana.portainer.infra.local-key.pem
-├── traefik/
-│   ├── docker-compose.yml
-│   ├── traefik.toml
-│   ├── traefik_dynamic.toml
-│   └── acme.json
+---
+
+### 🧩 Principais Funcionalidades
+
+* Entrada única para todos os serviços via HTTPS local.
+* Integração com Docker Swarm e labels para roteamento automático.
+* Suporte a certificados gerados com mkcert.
+* UI disponível em `https://traefik.infra.local`.
+
+---
+
+### 🗂️ Estrutura de Arquivos
+
+```
+traefik/
+├── docker-compose.yml       # Stack Traefik com suporte a HTTPS
+├── acme.json                # Certificados gerenciados por Traefik (deixe com chmod 600)
+├── traefik.toml             # Configuração principal do Traefik
+└── traefik_dynamic.toml     # Regras dinâmicas, middlewares, TLS, etc.
 ```
 
-## 1. Gerar certificados com mkcert
+---
+
+### ⚙️ Como funciona
+
+* O serviço `traefik` escuta em duas portas:
+
+  * `80` (HTTP) → redireciona para HTTPS
+  * `443` (HTTPS) → entrada principal com certificados locais
+
+* A configuração `traefik.toml` aponta para `traefik_dynamic.toml`, onde estão definidos:
+
+  * Middlewares como redirecionamento, autenticação, etc
+  * Certificados TLS estáticos
+  * Roteamento baseado em `Host()` (ex: `grafana.infra.local`)
+
+---
+
+### 🔐 Certificados Locais
+
+Os certificados são gerados com mkcert e montados dentro do container:
 
 ```bash
 mkcert traefik.infra.local
-mkcert portainer.infra.local
-mkcert grafana.portainer.infra.local
-
-mv *.pem ../certs/
 ```
-
-## 2. Atualizar o traefik\_dynamic.toml
-
-Adicione:
 
 ```toml
-[tls]
-  [[tls.certificates]]
-    certFile = "/certs/traefik.infra.local.pem"
-    keyFile = "/certs/traefik.infra.local-key.pem"
-
-  [[tls.certificates]]
-    certFile = "/certs/portainer.infra.local.pem"
-    keyFile = "/certs/portainer.infra.local-key.pem"
-
-  [[tls.certificates]]
-    certFile = "/certs/grafana.portainer.infra.local.pem"
-    keyFile = "/certs/grafana.portainer.infra.local-key.pem"
-
-[http.routers.api]
-  rule = "Host(`traefik.infra.local`)"
-  entrypoints = ["websecure"]
-  service = "api@internal"
-  [http.routers.api.tls]
-    domains = ["traefik.infra.local"]
+[tls.certificates]
+  certFile = "/etc/traefik/certs/traefik.infra.local.pem"
+  keyFile = "/etc/traefik/certs/traefik.infra.local-key.pem"
 ```
 
-## 3. Atualizar volumes no docker-compose.yml
+---
 
-```yaml
-    volumes:
-      - ./traefik.toml:/traefik.toml
-      - ./traefik_dynamic.toml:/traefik_dynamic.toml
-      - ./acme.json:/acme.json
-      - ../certs/traefik.infra.local.pem:/certs/traefik.infra.local.pem
-      - ../certs/traefik.infra.local-key.pem:/certs/traefik.infra.local-key.pem
-      - ../certs/portainer.infra.local.pem:/certs/portainer.infra.local.pem
-      - ../certs/portainer.infra.local-key.pem:/certs/portainer.infra.local-key.pem
-      - ../certs/grafana.portainer.infra.local.pem:/certs/grafana.portainer.infra.local.pem
-      - ../certs/grafana.portainer.infra.local-key.pem:/certs/grafana.portainer.infra.local-key.pem
-```
+### 🔍 Acessos
 
-## 4. Atualizar /etc/hosts
+| URL                                                        | Descrição                      |
+| ---------------------------------------------------------- | ------------------------------ |
+| [https://traefik.infra.local](https://traefik.infra.local) | Painel do Traefik (porta 8080) |
+
+---
+
+### 📦 Deploy
 
 ```bash
-echo "127.0.0.1 traefik.infra.local portainer.infra.local grafana.portainer.infra.local" | sudo tee -a /etc/hosts
-```
-
-## 5. Deploy com Docker Swarm
-
-```bash
-cd traefik
 docker stack deploy -c docker-compose.yml traefik
 ```
 
-## 6. Acessar o Traefik
+> Lembre-se de que todos os outros serviços devem estar na mesma rede `keiko_network` para serem roteados corretamente.
 
-Abra [https://traefik.infra.local](https://traefik.infra.local) no navegador. O certificado deve estar confiável se o `mkcert` estiver corretamente instalado.
+---
+
+### 🔐 Segurança
+
+* A dashboard pode ser protegida com middleware de autenticação.
+* Para ambientes sensíveis, é recomendável habilitar autenticação básica ou OAuth2.
+

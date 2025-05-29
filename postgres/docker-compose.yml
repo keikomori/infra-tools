@@ -11,7 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=odoo
-      - POSTGRES_PASSWORD=1234
+      - POSTGRES_PASSWORD=123456
       - POSTGRES_DB=dev-db
     ports:
       - target: 5432

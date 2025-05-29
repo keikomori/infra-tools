@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  postfix:
+    image: kmail-postfix:1.0
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+    ports:
+      - "2525:25"
+    volumes:
+      - mail_data:/var/mail
+      - postfix_spool:/var/spool/postfix
+      - ../certs/mail.infra.local.pem:/etc/ssl/certs/mail.infra.local.pem:ro
+      - ../certs/mail.infra.local-key.pem:/etc/ssl/private/mail.infra.local-key.pem:ro
+    networks:
+      - keiko_network
+
+  dovecot:
+    image: kmail-dovecot:1.0
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+    ports:
+      - "2143:143"     # IMAP (STARTTLS)
+      - "2993:993"     # IMAPS (SSL)
+    volumes:
+      - mail_data:/var/mail
+      - postfix_spool:/var/spool/postfix
+      - ../certs/mail.infra.local.pem:/etc/ssl/certs/mail.infra.local.pem:ro
+      - ../certs/mail.infra.local-key.pem:/etc/ssl/private/mail.infra.local-key.pem:ro
+    networks:
+      - keiko_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mail.rule=Host(`mail.infra.local`)"
+      - "traefik.http.routers.mail.entrypoints=websecure"
+      - "traefik.http.routers.mail.tls=true"
+      - "traefik.http.services.mail.loadbalancer.server.port=993"
+      - "traefik.docker.network=keiko_network"
+
+volumes:
+  postfix_spool:
+  mail_data:
+
+networks:
+  keiko_network:
+    external: true

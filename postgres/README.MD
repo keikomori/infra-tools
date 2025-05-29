@@ -1,45 +1,35 @@
-# PostgreSQL para Desenvolvimento com Docker Swarm
+## 🐘 PostgreSQL - Banco de Dados para Desenvolvimento Local
 
-Este guia documenta a configuração do PostgreSQL em um ambiente de desenvolvimento, usando Docker Swarm e rede `keiko_network`, sem Traefik ou SSL, para facilitar integração com serviços como Odoo.
+Esta stack configura um container PostgreSQL pronto para uso com Docker Swarm, voltado para ambientes de desenvolvimento. Integrado à rede `keiko_network`, ele serve de backend para serviços como Odoo, Keycloak, Grafana, entre outros.
 
-## Estrutura do Projeto
+---
 
-```bash
-infra-tools/
-├── postgres/
-│   └── docker-compose.yml
-```
+### 🎯 Objetivo
 
-## 1. Configuração do PostgreSQL
+Prover um banco de dados relacional robusto, acessível por outros containers na rede `keiko_network`, com persistência e segurança.
+
+---
+
+### 🛠️ Configuração (docker-compose.yml)
 
 ```yaml
-version: '3.8'
-
 services:
   postgres:
-    image: postgres:17
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - keiko_network
     deploy:
+      restart_policy:
+        condition: any
       placement:
         constraints:
           - node.role == manager
-      restart_policy:
-        condition: any
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=devuser
-      - POSTGRES_PASSWORD=devpass
-      - POSTGRES_DB=devdb
-    ports:
-      - target: 5432
-        published: 5432
-        mode: host
-    networks:
-      - keiko_network
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
 
 volumes:
   postgres_data:
@@ -49,19 +39,57 @@ networks:
     external: true
 ```
 
-## 2. Deploy
+---
+
+### 🧩 Funcionalidades
+
+* Banco de dados PostgreSQL 15
+* Volume persistente de dados
+* Pronto para uso com aplicações como Odoo, Keycloak e outras
+* Conexão segura via rede Swarm
+
+---
+
+### 🌐 Acesso
+
+| Endereço   | Descrição                  |
+| ---------- | -------------------------- |
+| `postgres` | Host interno via Docker    |
+| `5432`     | Porta padrão do PostgreSQL |
+
+Você pode acessar via terminal com:
 
 ```bash
-cd postgres
+psql -h postgres -U odoo -d dev
+```
+
+Ou usando ferramentas gráficas como DBeaver e TablePlus.
+
+---
+
+### 📁 Estrutura
+
+```
+postgres/
+├── docker-compose.yml     # Stack do PostgreSQL
+└── README.md              # Este documento
+```
+
+---
+
+### 📦 Deploy
+
+```bash
 docker stack deploy -c docker-compose.yml postgres
 ```
 
-## 3. Acessar o banco
+---
 
-* **Host:** localhost
-* **Porta:** 5432
-* **Usuário:** odoo
-* **Senha:** 1234
-* **Database:** devdb
+### ✅ Requisitos
 
-Você pode se conectar usando DBeaver, Adminer ou via outros containers na rede `keiko_network` com `postgres:5432`.
+* Docker Swarm inicializado
+* Rede externa `keiko_network` criada previamente:
+
+```bash
+docker network create --driver=overlay --attachable keiko_network
+```

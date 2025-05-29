@@ -1,0 +1,34 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    environment:
+      RABBITMQ_DEFAULT_USER: odoo
+      RABBITMQ_DEFAULT_PASS: 123456
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - keiko_network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.infra.local`)"
+        - "traefik.http.routers.rabbitmq.entrypoints=websecure"
+        - "traefik.http.routers.rabbitmq.tls=true"
+        - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
+        - "traefik.docker.network=keiko_network"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  keiko_network:
+    external: true

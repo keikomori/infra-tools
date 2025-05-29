@@ -1,0 +1,27 @@
+compatibility_level = 3.6
+myhostname = dev.local
+mydomain = dev.local
+myorigin = $mydomain
+
+home_mailbox = Maildir/
+mailbox_command =
+
+inet_interfaces = all
+inet_protocols = ipv4
+mydestination = $myhostname, localhost.$mydomain, localhost
+mynetworks = 0.0.0.0/0
+mailbox_size_limit = 0
+recipient_delimiter = +
+relayhost =
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_local_domain = $mydomain
+smtpd_recipient_restrictions = permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination
+smtpd_sasl_path = smtpd
+smtpd_sasl_type = cyrus
+
+smtpd_tls_cert_file = /etc/ssl/certs/mail.infra.local.pem
+smtpd_tls_key_file = /etc/ssl/private/mail.infra.local-key.pem
+smtpd_tls_security_level = may
+smtp_tls_security_level = may
+
+virtual_transport = lmtp:unix:private/dovecot-lmtp
