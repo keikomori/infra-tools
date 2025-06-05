@@ -13,20 +13,24 @@ services:
       - keiko_network
     volumes:
       - nifi_data:/opt/nifi/nifi-current
+      - ../certs/nifi.infra.local.pem:/opt/nifi/certs/nifi.infra.local.pem
+      - ../certs/nifi.infra.local-key.pem:/opt/nifi/certs/nifi.infra.local-key.pem
     environment:
       - NIFI_WEB_HTTPS_PORT=8443
       - NIFI_WEB_HTTPS_HOST=0.0.0.0
       - NIFI_WEB_PROXY_CONTEXT_PATH=/nifi
+      - NIFI_WEB_PROXY_HOST=nifi.infra.local
       - SINGLE_USER_CREDENTIALS_USERNAME=keiko
       - SINGLE_USER_CREDENTIALS_PASSWORD=123456123456
+      - NIFI_SECURITY_KEYSTORE_TYPE=PEM
+      - NIFI_SECURITY_TRUSTSTORE_TYPE=PEM
+      - NIFI_SECURITY_KEYSTORE=/opt/nifi/certs/nifi.infra.local.pem
+      - NIFI_SECURITY_KEYSTOREPASSWD=changeit
+      - NIFI_SECURITY_KEYPASSWD=changeit
+      - NIFI_SECURITY_TRUSTSTORE=/opt/nifi/certs/nifi.infra.local.pem
+      - NIFI_SECURITY_TRUSTSTOREPASSWD=changeit
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nifi.rule=Host(`nifi.infra.local`) && PathPrefix(`/nifi`)"
-      - "traefik.http.routers.nifi.entrypoints=websecure"
-      - "traefik.http.routers.nifi.tls=true"
-      - "traefik.http.services.nifi.loadbalancer.server.port=8443"
-      - "traefik.http.services.nifi.loadbalancer.server.scheme=https"
-      - "traefik.docker.network=keiko_network"
+      - "traefik.enable=false"  # Desabilite o Traefik Docker provider para este serviço
 volumes:
   nifi_data:
 

@@ -16,10 +16,6 @@
     keyFile = "/certs/rabbitmq.infra.local-key.pem"
 
   [[tls.certificates]]
-    certFile = "/certs/nifi.infra.local.pem"
-    keyFile = "/certs/nifi.infra.local-key.pem"
-
-  [[tls.certificates]]
     certFile = "/certs/mail.infra.local.pem"
     keyFile  = "/certs/mail.infra.local-key.pem"
 

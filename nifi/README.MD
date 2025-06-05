@@ -16,30 +16,39 @@ Prover uma plataforma visual para orquestrar, transformar e monitorar fluxos de 
 services:
   nifi:
     image: apache/nifi:latest
-    hostname: nifi
-    ports:
-      - "8080:8080"
-    environment:
-      - NIFI_WEB_HTTP_PORT=8443
-      - NIFI_WEB_HTTP_HOST=0.0.0.0
-    volumes:
-      - nifi_data:/opt/nifi/nifi-current/data
-    networks:
-      - keiko_network
     deploy:
       placement:
         constraints:
           - node.role == manager
       restart_policy:
         condition: any
+    ports:
+      - "8443:8443"
+    networks:
+      - keiko_network
+    volumes:
+      - nifi_data:/opt/nifi/nifi-current
+      - ../certs/nifi.infra.local.pem:/certs/nifi.infra.local.pem
+      - ../certs/nifi.infra.local-key.pem:/certs/nifi.infra.local-key.pem
+    environment:
+      - NIFI_WEB_HTTPS_PORT=8443
+      - NIFI_WEB_HTTPS_HOST=0.0.0.0
+      - NIFI_WEB_PROXY_CONTEXT_PATH=/nifi
+      - SINGLE_USER_CREDENTIALS_USERNAME=keiko
+      - SINGLE_USER_CREDENTIALS_PASSWORD=123456123456
+      - NIFI_SECURITY_KEYSTORE=/opt/nifi/certs/nifi.infra.local.pem
+      - NIFI_SECURITY_KEYSTOREPASSWD=changeit
+      - NIFI_SECURITY_KEYPASSWD=changeit
+      - NIFI_SECURITY_TRUSTSTORE=/opt/nifi/certs/nifi.infra.local.pem
+      - NIFI_SECURITY_TRUSTSTOREPASSWD=changeit
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nifi.rule=Host(`nifi.infra.local`)"
+      - "traefik.http.routers.nifi.rule=Host(`nifi.infra.local`) && PathPrefix(`/nifi`)"
       - "traefik.http.routers.nifi.entrypoints=websecure"
       - "traefik.http.routers.nifi.tls=true"
       - "traefik.http.services.nifi.loadbalancer.server.port=8443"
+      - "traefik.http.services.nifi.loadbalancer.server.scheme=https"
       - "traefik.docker.network=keiko_network"
-
 volumes:
   nifi_data:
 
