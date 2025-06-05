@@ -80,7 +80,7 @@ postgres/
 ### 📦 Deploy
 
 ```bash
-docker stack deploy -c docker-compose.yml postgres
+docker stack deploy -c postgres/docker-compose.yml postgres
 ```
 
 ---

@@ -60,7 +60,7 @@ Os arquivos `.pem` estão em `./certs/` e são montados nos containers via volum
 | PostgreSQL  | (sem UI, acesso via apps)                                      | 5432          | `postgres/`    |
 | RabbitMQ    | [https://rabbitmq.infra.local](https://rabbitmq.infra.local)   | 15672         | `rabbitmq/`    |
 | Keycloak    | [https://auth.infra.local](https://auth.infra.local)           | 8080          | `auth/`        |
-| NiFi        | [https://nifi.infra.local](https://nifi.infra.local)           | 8080          | `nifi/`        |
+| NiFi        | [https://nifi.infra.local](https://nifi.infra.local)           | 8443          | `nifi/`        |
 | Mail Server | SMTP (2525/465), IMAP (2143/993)                               | vários        | `mail-server/` |
 
 ---

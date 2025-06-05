@@ -2,18 +2,23 @@
   [[tls.certificates]]
     certFile = "/certs/traefik.infra.local.pem"
     keyFile = "/certs/traefik.infra.local-key.pem"
+
   [[tls.certificates]]
     certFile = "/certs/portainer.infra.local.pem"
     keyFile = "/certs/portainer.infra.local-key.pem"
+
   [[tls.certificates]]
     certFile = "/certs/grafana.infra.local.pem"
     keyFile = "/certs/grafana.infra.local-key.pem"
+
   [[tls.certificates]]
     certFile = "/certs/rabbitmq.infra.local.pem"
     keyFile = "/certs/rabbitmq.infra.local-key.pem"
+
   [[tls.certificates]]
     certFile = "/certs/nifi.infra.local.pem"
     keyFile = "/certs/nifi.infra.local-key.pem"
+
   [[tls.certificates]]
     certFile = "/certs/mail.infra.local.pem"
     keyFile  = "/certs/mail.infra.local-key.pem"
@@ -25,9 +30,12 @@
     regex = "^https?://www\\.(.+)"
     replacement = "https://${1}"
 
+
 [http.routers.api]
   rule = "Host(`traefik.infra.local`)"
   entrypoints = ["websecure"]
   service = "api@internal"
+
   [http.routers.api.tls]
-    domains = ["traefik.infra.local"]
+    [[http.routers.api.tls.domains]]
+      main = "traefik.infra.local"

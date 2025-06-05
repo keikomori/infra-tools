@@ -20,7 +20,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_WEB_HTTP_PORT=8443
       - NIFI_WEB_HTTP_HOST=0.0.0.0
     volumes:
       - nifi_data:/opt/nifi/nifi-current/data
@@ -37,7 +37,7 @@ services:
       - "traefik.http.routers.nifi.rule=Host(`nifi.infra.local`)"
       - "traefik.http.routers.nifi.entrypoints=websecure"
       - "traefik.http.routers.nifi.tls=true"
-      - "traefik.http.services.nifi.loadbalancer.server.port=8080"
+      - "traefik.http.services.nifi.loadbalancer.server.port=8443"
       - "traefik.docker.network=keiko_network"
 
 volumes:
@@ -94,7 +94,7 @@ nifi/
 ### 📦 Deploy
 
 ```bash
-docker stack deploy -c docker-compose.yml nifi
+docker stack deploy -c nifi/docker-compose.yml nifi
 ```
 
 ---

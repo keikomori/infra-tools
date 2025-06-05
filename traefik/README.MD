@@ -71,7 +71,7 @@ mkcert traefik.infra.local
 ### 📦 Deploy
 
 ```bash
-docker stack deploy -c /home/keiko/infra-tools/traefik/docker-compose.yml traefik
+docker stack deploy -c traefik/docker-compose.yml traefik
 ```
 
 > Lembre-se de que todos os outros serviços devem estar na mesma rede `keiko_network` para serem roteados corretamente.

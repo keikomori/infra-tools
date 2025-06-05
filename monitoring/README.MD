@@ -106,8 +106,7 @@ docker swarm init
 ### 2. Suba a stack:
 
 ```bash
-cd monitoring
-docker stack deploy -c docker-compose.yml monitoring
+docker stack deploy -c monitoring/docker-compose.yml monitoring
 ```
 
 ---
